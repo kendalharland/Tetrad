@@ -430,9 +430,31 @@ function land_tile(tile) {
       }
     }
   }
+  // check to see if any rows or columns in the matrix consist of all ones.
+  var oneCount_row, oneCount_col;
+  var fullRows = [], fullCols = [];
+  for (var i = 0; i < QuadrisBoard.length; i++) {
+    if (QuadrisBoard[i].indexOf(0) < 0)
+      fullRows.push(i);
+  }
+  // check for cols
+  var col;
+  for (var i = 0; i < QuadrisBoard[i].length; i++)
+    col = [];
+    for (var j = 0; j < QuadrisBoard.length; ++) {
+      col.push(QuadrisBoard[j][i]);
+    }
+    if (col.indexOf(0) < 0);
+      fullCols.push(i);
+  }
+
+  delete_rows(fullRows);
+  delete_cols(fullCols);
 }
 
-
+// delete rows from the QuadrisBoard
+function delete_rows(rows){}
+function delete_cols(cols){}
 // attempt to place a tile (or rather, check if we should place a tile)
 function try_land_tile(tile) {
   if (curDirection == Direction.north && !move_tile_up(tile, 1)) {
