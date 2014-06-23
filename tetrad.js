@@ -441,7 +441,7 @@ function land_tile(tile) {
   var col;
   for (var i = 0; i < QuadrisBoard[i].length; i++)
     col = [];
-    for (var j = 0; j < QuadrisBoard.length; ++) {
+    for (var j = 0; j < QuadrisBoard.length; j++) {
       col.push(QuadrisBoard[j][i]);
     }
     if (col.indexOf(0) < 0);
