@@ -360,35 +360,30 @@ function move_tile_right(tile, n) {
 
 
 function slam_control() {
-  ctx.fillStyle = 'orange';
   slam_tile(active_tile);
   draw_board(ctx, active_tile);
 }
 
 
 function up_control() {
-  ctx.fillStyle = 'orange';
   move_tile_up(active_tile, 1);
   draw_board(ctx, active_tile);
 }
 
 
 function down_control() {
-  ctx.fillStyle = 'orange';
   move_tile_down(active_tile, 1);
   draw_board(ctx, active_tile);
 }
 
 
 function left_control() {
-  ctx.fillStyle = 'orange';
   move_tile_left(active_tile, 1);
   draw_board(ctx, active_tile);
 }
 
 
 function right_control() {
-  ctx.fillStyle = 'orange';
   move_tile_right(active_tile, 1);
   draw_board(ctx, active_tile);
 }
