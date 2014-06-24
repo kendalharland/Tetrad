@@ -432,10 +432,10 @@ function set_random_direction() {
 function set_direction(dice) {
   switch(dice) {
     default: set_direction_north(); break;
-    case 0: set_direction_east(); break;
-    case 1: set_direction_south(); break;
-    case 2: set_direction_west(); break;
-    case 3: set_direction_north(); break;
+    case Direction.north: set_direction_north(); break;
+    case Direction.east: set_direction_east(); break;
+    case Direction.south: set_direction_south(); break;
+    case Direction.west: set_direction_west(); break;
   }
 }
 
