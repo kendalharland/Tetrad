@@ -1,5 +1,5 @@
 /*
-  Quadris
+  Tetrad
   -----------------------------------------------------------------------------
   Tile names taken from: https://sites.google.com/site/polynominos/tetrominos
 
@@ -7,7 +7,7 @@
   - Implement scoring
   - Implement randomized piece direction
   - Implement timer increments (different values)
-  - Implement colors for different quadrominoes
+  - Implement colors for different tetradominoes
   - Implement start, restart, and pause buttons
   - Implement controls for slamming a piece
   - Implement piece movement speedup
@@ -17,24 +17,25 @@
 */
 
 
-/**-- Quadris Game Settings --------------------------------------------------*/
+/**-- Tetrad Game Settings --------------------------------------------------*/
+
 
 var score = 0;
 var SCORE_PER_ROW = 10;
 
-var Quadromino;         // class for quadromino pieces
-var tiles, curTile = 0; // set of quadromino tile types, id of the current tile
+var Tetradomino;         // class for tetradomino pieces
+var tiles, curTile = 0; // set of tetradomino tile types, id of the current tile
 
-var QuadrisBoard = [];  // logical game board
+var TetradBoard = [];  // logical game board
 var ColorBoard = [];    // logical game board color grid
 var HEIGHT_BLOCKS = 20; // height of board in blocks
 var WIDTH_BLOCKS = 25;  // width of board in blocks
 var BLOCK_WIDTH = 24;   // size of block in pixels;
-var BOARD_BASE_COLOR = 'black'; // background color of the quadris board
+var BOARD_BASE_COLOR = 'black'; // background color of the tetrad board
 var canvas, ctx;        // visible game board
 
 var Direction = { north: 0, east: 1, south: 2, west: 3}; // piece directions
-var curDirection; // current quadris forced tile direction
+var curDirection; // current tetrad forced tile direction
 
 var initTimeQuantum = 700, curTimeQuantum; // starting and current quantums for moment
 var momentInterval; // interval from advancing to the next moment in the game
@@ -47,6 +48,14 @@ var TILE_SHADOW_COLOR = 'black';
 var TILE_SHADOW_OFFSET_X = 0;
 var TILE_SHADOW_OFFSET_Y = 0;
 
+// arrows for indicating tile direction
+var arrow = {
+  up: (function(){ var a=new Image();a.src=window.location.origin+"/assets/img/arrow-up.png";return a;})(),
+  right: (function(){ var a=new Image();a.src=window.location.origin+"/assets/img/arrow-right.png";return a;})(),
+  down: (function(){ var a=new Image();a.src=window.location.origin+"/assets/img/arrow-down.png";return a;})(),
+  left: (function(){ var a=new Image();a.src=window.location.origin+"/assets/img/arrow-left.png";return a;})(),
+};
+
 
 // Utility function for representing points
 function Point(x, y) {
@@ -58,7 +67,7 @@ function Point(x, y) {
 /**-- Qaudromino implementations -------------------------------------------*/
 
 
-Quadromino = {
+Tetradomino = {
 
   /* _ _ _ _ 
     |_|_|_|_|
@@ -251,9 +260,9 @@ Quadromino = {
     for (var i = 0; i < tile.regions.length; i++) {
       for (var j = 0; j < tile.regions[i].length; j++) {
         if (tile.regions[i][j]) {
-          if ((tile.pos.y + i < 0 || tile.pos.y+i >= QuadrisBoard.length) 
-            ||(tile.pos.x + j < 0 || tile.pos.x+j >= QuadrisBoard[0].length)
-            ||QuadrisBoard[tile.pos.y+i][tile.pos.x+j])
+          if ((tile.pos.y + i < 0 || tile.pos.y+i >= TetradBoard.length) 
+            ||(tile.pos.x + j < 0 || tile.pos.x+j >= TetradBoard[0].length)
+            ||TetradBoard[tile.pos.y+i][tile.pos.x+j])
           return true;
         }
       }
@@ -266,9 +275,8 @@ Quadromino = {
 /*--- Tile controls and movement --------------------------------------------*/
 
 
-// slam helper functions
+// slam_tile helper functions
 var _slam = {
-
   north: function (tile) {
     clearInterval(momentInterval);
     while(move_tile_up(tile, 1));
@@ -315,7 +323,7 @@ function slam_tile(tile) {
 // move a game tile up n spaces
 function move_tile_up(tile, n) {
   tile.pos.y -= n;
-  if (Quadromino.Colliding(tile)) {
+  if (Tetradomino.Colliding(tile)) {
     tile.pos.y += n;
     return false;
   }
@@ -326,7 +334,7 @@ function move_tile_up(tile, n) {
 // move a game tile down n spaces
 function move_tile_down(tile, n) { 
   tile.pos.y += n;
-  if (Quadromino.Colliding(tile)) {
+  if (Tetradomino.Colliding(tile)) {
     tile.pos.y -= n;
     return false;
   }
@@ -337,7 +345,7 @@ function move_tile_down(tile, n) {
 // move a game tile left n spaces
 function move_tile_left(tile, n) {
   tile.pos.x -= 1;
-  if (Quadromino.Colliding(tile)) {
+  if (Tetradomino.Colliding(tile)) {
     tile.pos.x += 1;
     return false;
   }
@@ -348,7 +356,7 @@ function move_tile_left(tile, n) {
 // move a game tile right n spaces
 function move_tile_right(tile, n) {
   tile.pos.x += 1;
-  if (Quadromino.Colliding(tile)) {
+  if (Tetradomino.Colliding(tile)) {
     tile.pos.x -= 1;
     return false;
   }
@@ -390,19 +398,17 @@ function right_control() {
 
 
 function rotate_control() {
-  Quadromino.Rotate(active_tile);
-  // make sure quadromino can actually rotate
-  if (Quadromino.Colliding(active_tile)) {
+  Tetradomino.Rotate(active_tile);
+  // make sure tetradomino can actually rotate
+  if (Tetradomino.Colliding(active_tile)) {
     if (!move_tile_right(active_tile, 1)  &&
         !move_tile_left(active_tile, 1)   &&
         !move_tile_up(active_tile, 1)     &&
         !move_tile_down(active_tile, 1))
-      Quadromino.RotateBack(active_tile);
+      Tetradomino.RotateBack(active_tile);
   }
   draw_board(ctx, active_tile);
-  reset_moment_interval(curTimeQuantum);
 };
-
 
 
 /**-- Auto game actions -------------------------------------------------*/
@@ -479,36 +485,51 @@ function set_direction_east() {
 }
 
 
+function draw_compass(ctx) { 
+  var pointer;
+  switch(curDirection) {
+    case Direction.north: pointer= arrow.up; break;
+    case Direction.east: pointer = arrow.right; break;
+    case Direction.south: pointer = arrow.down; break;
+    case Direction.west: pointer = arrow.left; break;
+  }
+  
+  ctx.drawImage(pointer,  Math.floor(WIDTH_BLOCKS*BLOCK_WIDTH/2.5), Math.floor(HEIGHT_BLOCKS*BLOCK_WIDTH/3));
+}
+
+
 // draw the Game board in its current state
 function draw_board(ctx, tile) {
   ctx.shadowBlur = TILE_SHADOW_BLUR;
   ctx.shadowColor = TILE_SHADOW_COLOR;
   ctx.shadowOffsetX = TILE_SHADOW_OFFSET_X;
   ctx.shadowOffsetY = TILE_SHADOW_OFFSET_Y;
-
   // color entire board base color
   ctx.fillStyle = BOARD_BASE_COLOR;
   ctx.fillRect(0, 0, BLOCK_WIDTH*WIDTH_BLOCKS, BLOCK_WIDTH*HEIGHT_BLOCKS);
 
+  // draw direction arrow
+  draw_compass(ctx);
+
   // draw landed pieces
-  for (var i = 0; i < HEIGHT_BLOCKS; i++)
-    for (var j = 0; j < WIDTH_BLOCKS; j++)
-      if (QuadrisBoard[i][j]) {
+  for (var i = 0; i < HEIGHT_BLOCKS; i++) {
+    for (var j = 0; j < WIDTH_BLOCKS; j++){
+      if (TetradBoard[i][j]) {
         ctx.fillStyle = ColorBoard[i][j];
-        ctx.fillRect( BLOCK_WIDTH*j,  BLOCK_WIDTH*i,
-                      BLOCK_WIDTH  ,  BLOCK_WIDTH);
+        ctx.fillRect( BLOCK_WIDTH*j,  BLOCK_WIDTH*i, BLOCK_WIDTH  ,  BLOCK_WIDTH);
       }
-      
+    }
+  }
+
+  
   // draw the active tile
   ctx.fillStyle = tile.color;
-  for (var i = 0; i < tile.regions.length; i++)
-     for (var j = 0; j < tile.regions[i].length; j++)
-       if (tile.regions[i][j]) {
-        ctx.fillRect( BLOCK_WIDTH*(tile.pos.x + j), 
-                      BLOCK_WIDTH*(tile.pos.y + i),
-                      BLOCK_WIDTH, 
-                      BLOCK_WIDTH);
-      }
+  for (var i = 0; i < tile.regions.length; i++) {
+     for (var j = 0; j < tile.regions[i].length; j++) {
+       if (tile.regions[i][j])
+        ctx.fillRect( BLOCK_WIDTH*(tile.pos.x + j), BLOCK_WIDTH*(tile.pos.y + i), BLOCK_WIDTH, BLOCK_WIDTH);
+    }
+  }
 }
 
 
@@ -516,7 +537,7 @@ function draw_board(ctx, tile) {
 function get_next_tile(tile) {
   var which = Math.floor(Math.random()*tiles.length);
   active_tile = new tiles[which](new Point(TILE_START_X, TILE_START_Y));
-  if(Quadromino.Colliding(active_tile)) {
+  if(Tetradomino.Colliding(active_tile)) {
     end_game();
     return false;
   }
@@ -524,58 +545,48 @@ function get_next_tile(tile) {
 }
 
 
-// place a tile onto the quadris board
+// place a tile onto the tetrad board
 function land_tile(tile) {
   for (var i = 0; i < tile.regions.length; i++) {
     for (var j = 0; j < tile.regions[i].length; j++) {
       if (tile.regions[i][j]) {
-        QuadrisBoard[tile.pos.y+i][tile.pos.x+j] = 1;
+        TetradBoard[tile.pos.y+i][tile.pos.x+j] = 1;
         ColorBoard[tile.pos.y+i][tile.pos.x+j] = tile.color;
       }
     }
   }
-  check_for_full_rows();
+  
+  while(check_for_full_rows());
 }
 
 
 // check to see if any rows have been filled
 function check_for_full_rows() {
-  // check to see if any rows or columns in the matrix consist of all ones.
   var fullRows = [];
-  for (var i = 0; i < HEIGHT_BLOCKS; i++) {
-    if (QuadrisBoard[i].indexOf(0) < 0)
+  for (var i = 0; i < TetradBoard.length; i++) {
+    if (TetradBoard[i].indexOf(0) < 0)
       fullRows.push(i);
   }
+  
   delete_rows(fullRows);
-  if (fullRows.length)
-    check_for_full_rows();
+  return fullRows.length;
 }
   
 
-// delete rows from the QuadrisBoard
+// delete rows from the TetradBoard
 function delete_rows(rows) {
   for (var i = 0; i < rows.length; i++) {
     if (rows[i] < HEIGHT_BLOCKS/2) { // if top half of the board
-      for (var j = rows[i]; j < HEIGHT_BLOCKS-1; j++) {
-        QuadrisBoard[j] = QuadrisBoard[j+1].slice(0);
-        ColorBoard[j] = ColorBoard[j+1].slice(0);
-      }
-      for (var j = 0; j < WIDTH_BLOCKS; j++) {
-        QuadrisBoard[HEIGHT_BLOCKS-1][j] = 0;
-        ColorBoard[j] = BOARD_BASE_COLOR;
-      }
-    } else {
-      for (var j = rows[i]; j > 0; j--) {
-        for (var k = 0; k < WIDTH_BLOCKS; k++) {
-          QuadrisBoard[j] = QuadrisBoard[j-1].slice(0);
-          ColorBoard[j] = ColorBoard[j-1].slice(0);
-        }
-      }
-      // fill with zeroes
-      for (var j = 0; j < WIDTH_BLOCKS; j++) {
-        QuadrisBoard[0][j] = 0;
-        ColorBoard[0][j] = BOARD_BASE_COLOR;
-      }
+      TetradBoard.splice(rows[i], 1);
+      TetradBoard = TetradBoard.concat([TetradBoard[TetradBoard.length-1].slice(0)]);
+      ColorBoard.splice(rows[i], 1);
+      ColorBoard = ColorBoard.concat([ColorBoard[ColorBoard.length-1].slice(0)]);
+    } 
+    else {
+      TetradBoard.splice(rows[i], 1);
+      TetradBoard.unshift(TetradBoard[0].slice(0));
+      ColorBoard.splice(rows[i], 1);
+      ColorBoard.unshift(ColorBoard[0].slice(0));
     }
   }
   increase_score(rows.length);
@@ -585,12 +596,10 @@ function delete_rows(rows) {
 function increase_score(numRows) {
   score += numRows * SCORE_PER_ROW;
   if (score && score >= nextLevel) {
-    reset_moment_interval(curTimeQuantum*0.75);
+    reset_moment_interval(curTimeQuantum*0.85);
     nextLevel += score + SCORE_PER_ROW;
   }
 }
-
-
 
 
 // end the curren game
@@ -644,7 +653,6 @@ function next_moment() {
     // don't start the next moment, game has ended
     else return; 
   }
-
   draw_board(ctx, active_tile);
   reset_moment_interval(curTimeQuantum);
 }
@@ -661,25 +669,25 @@ function reset_moment_interval(quantum) {
 /**-- Starting a new game ----------------------------------------------------*/
 
 
-// set up quadris board and color board
+// set up tetrad board and color board
 for (var i = 0; i < HEIGHT_BLOCKS; i++) {
-  QuadrisBoard.push([]);
+  TetradBoard.push([]);
   ColorBoard.push([]);
   for (var j = 0; j < WIDTH_BLOCKS; j++) {
-    QuadrisBoard[i].push(0);
-    ColorBoard[i].push(BOARD_BASE_COLOR);
+    TetradBoard[i].unshift(0);
+    ColorBoard[i].unshift(BOARD_BASE_COLOR);
   }
 }
 
 // set of tile types
 tiles = [
-  Quadromino.Tetril,
-  Quadromino.Tad,
-  Quadromino.Basil,
-  Quadromino.Jed,
-  Quadromino.Led,
-  Quadromino.Zaw,
-  Quadromino.Saw,
+  Tetradomino.Tetril,
+  Tetradomino.Tad,
+  Tetradomino.Basil,
+  Tetradomino.Jed,
+  Tetradomino.Led,
+  Tetradomino.Zaw,
+  Tetradomino.Saw,
 ];
 
 // setup canvas
